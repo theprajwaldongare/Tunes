@@ -1,4 +1,5 @@
 package com.examples.tunes;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,22 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
                 .placeholder(R.drawable.music)
                 .error(R.drawable.music)
                 .into(holder.albumArtImage);
+
+        holder.itemView.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Intent intent = new Intent(v.getContext(),PlayerActivity.class);
+                intent.putExtra("SONG_TITLE",currentSong.getTitle());
+                intent.putExtra("SONG_ARTIST",currentSong.getArtist());
+                intent.putExtra("SONG_URI",currentSong.getSongUri().toString());
+
+                if (currentSong.getAlbumArtUri()!=null){
+                    intent.putExtra("ALBUM_ART_URI",currentSong.getAlbumArtUri().toString());
+                }
+
+                v.getContext().startActivity(intent);
+            }
+        });
     }
 
     @Override
