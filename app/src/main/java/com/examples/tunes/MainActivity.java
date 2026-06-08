@@ -32,7 +32,8 @@ public class MainActivity extends AppCompatActivity {
         }
     });
 //    TextView songDsp;
-    private List<Song> allSongs = new ArrayList<>();
+//    private List<Song> allSongs = new ArrayList<>();
+    public static List<Song> allSongs = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

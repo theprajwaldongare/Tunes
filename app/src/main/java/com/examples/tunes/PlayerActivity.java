@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -21,12 +22,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class PlayerActivity extends AppCompatActivity {
 //    TextView songPlay;
-    private FloatingActionButton playPauseBtn;
+//private FloatingActionButton playPauseBtn;
+
     private SeekBar songProgress;
     private TextView songName, artistName;
     private ImageView albumArt;
     private MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
+    private ImageButton playPauseBtn,nextBtn,prevBtn;
+    private int currentPosition = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,36 +45,78 @@ public class PlayerActivity extends AppCompatActivity {
         playPauseBtn = findViewById(R.id.playPause);
         songProgress = findViewById(R.id.songProgress);
 
+        nextBtn = findViewById(R.id.nextBtn);
+        prevBtn = findViewById(R.id.prevBtn);
+
+
+
 
         if (incomeIntent!=null){
-            String title = incomeIntent.getStringExtra("SONG_TITLE");
-            String artist = incomeIntent.getStringExtra("SONG_ARTIST");
-            String uriString = incomeIntent.getStringExtra("SONG_URI");
-            String albumArtString = incomeIntent.getStringExtra("ALBUM_ART_URI");
+            currentPosition = getIntent().getIntExtra("SONG_POSITION", 0);
+            loadSong(currentPosition);
 
-            if (albumArtString!=null){
-                Uri albumArtUri = Uri.parse(albumArtString);
-                Glide.with(this).load(albumArtUri).into(albumArt);
-            } else {
-                albumArt.setImageResource(R.drawable.albumart);
-            }
-
-            if (title!=null){
-                songName.setText(title);
-            }
-            if (artistName!=null){
-                artistName.setText(artist);
-            }
-
-            if (uriString!=null){
-
-                Uri playUri = Uri.parse(uriString);
-                playMusic(playUri);
+//            String title = incomeIntent.getStringExtra("SONG_TITLE");
+//            String artist = incomeIntent.getStringExtra("SONG_ARTIST");
+//            String uriString = incomeIntent.getStringExtra("SONG_URI");
+//            String albumArtString = incomeIntent.getStringExtra("ALBUM_ART_URI");
 
 
-                Log.d("TunesApp", "Playing: " + title + " from URI: " + playUri.toString());
-//                songPlay.setText("Playing: " + title + "URI: " + playUri.toString());
-            }
+//            if (albumArtString!=null){
+//                Uri albumArtUri = Uri.parse(albumArtString);
+//                Glide.with(this).load(albumArtUri).centerCrop().transform(new com.bumptech.glide.load.resource.bitmap.RoundedCorners(40)).placeholder(R.drawable.albumart).error(R.drawable.albumart).into(albumArt);;
+//                Glide.with(this).asBitmap().load(albumArtUri).into(new com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>(){
+//                    @Override
+//                    public void onResourceReady(@androidx.annotation.NonNull android.graphics.Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super android.graphics.Bitmap> transition) {
+//                        androidx.palette.graphics.Palette.from(resource).generate(palette -> {
+//                            if (palette!=null){
+////                                int defColor = android.graphics.Color.parseColor("#000000");
+////                                int extColor = palette.getDarkVibrantColor(defColor);
+////                                findViewById(R.id.main).setBackgroundColor(extColor);
+//
+//
+//                                int defaultColor = android.graphics.Color.parseColor("#121212");
+//                                int darkVibrant = palette.getDarkVibrantColor(defaultColor);
+//                                int dominant = palette.getDominantColor(defaultColor);
+//                                int muted = palette.getMutedColor(defaultColor);
+//
+//                                int[] gradientColors = {dominant,darkVibrant, muted};
+//
+//                                android.graphics.drawable.GradientDrawable gradientDrawable = new android.graphics.drawable.GradientDrawable(
+//                                        android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+//                                        gradientColors
+//                                );
+//
+//                                findViewById(R.id.main).setBackground(gradientDrawable);
+//                            }
+//                        });
+//                    }
+//
+//                    @Override
+//                    public void onLoadCleared(@androidx.annotation.Nullable android.graphics.drawable.Drawable placeholder) {
+//                    }
+//
+//                });
+//            } else {
+//                // it not work due to not null string as albumartstring is always not null
+//                albumArt.setImageResource(R.drawable.albumart);
+//            }
+//
+//            if (title!=null){
+//                songName.setText(title);
+//            }
+//            if (artist!=null){
+//                artistName.setText(artist);
+//            }
+//
+//            if (uriString!=null){
+//
+//                Uri playUri = Uri.parse(uriString);
+//                playMusic(playUri);
+//
+//
+//                Log.d("TunesApp", "Playing: " + title + " from URI: " + playUri.toString());
+////                songPlay.setText("Playing: " + title + "URI: " + playUri.toString());
+//            }
         }
 
         playPauseBtn.setOnClickListener(v->{
@@ -83,6 +129,16 @@ public class PlayerActivity extends AppCompatActivity {
                     playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
                 }
             }
+        });
+
+        nextBtn.setOnClickListener(v -> {
+            currentPosition = (currentPosition + 1) % MainActivity.allSongs.size();
+            loadSong(currentPosition);
+        });
+
+        prevBtn.setOnClickListener(v -> {
+            currentPosition = (currentPosition - 1 < 0) ? (MainActivity.allSongs.size() - 1) : (currentPosition - 1);
+            loadSong(currentPosition);
         });
 
         songProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -112,6 +168,75 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
+    private void loadSong(int index){
+
+        Song currentSong = MainActivity.allSongs.get(index);
+        String title = currentSong.getTitle();
+        String artist = currentSong.getArtist();
+        String uriString = currentSong.getSongUri().toString();
+        String albumArtString = currentSong.getAlbumArtUri().toString();
+
+        if (title!=null){
+            songName.setText(title);
+        }
+        if (artist!=null){
+            artistName.setText(artist);
+        }
+
+        if (uriString!=null){
+
+            Uri playUri = Uri.parse(uriString);
+            playMusic(playUri);
+
+
+            Log.d("TunesApp", "Playing: " + title + " from URI: " + playUri.toString());
+//                songPlay.setText("Playing: " + title + "URI: " + playUri.toString());
+        }
+
+
+        if (albumArtString!=null){
+            Uri albumArtUri = Uri.parse(albumArtString);
+            Glide.with(this).load(albumArtUri).centerCrop().transform(new com.bumptech.glide.load.resource.bitmap.RoundedCorners(40)).placeholder(R.drawable.albumart).error(R.drawable.albumart).into(albumArt);;
+            Glide.with(this).asBitmap().load(albumArtUri).into(new com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>(){
+                @Override
+                public void onResourceReady(@androidx.annotation.NonNull android.graphics.Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super android.graphics.Bitmap> transition) {
+                    androidx.palette.graphics.Palette.from(resource).generate(palette -> {
+                        if (palette!=null){
+//                                int defColor = android.graphics.Color.parseColor("#000000");
+//                                int extColor = palette.getDarkVibrantColor(defColor);
+//                                findViewById(R.id.main).setBackgroundColor(extColor);
+
+
+                            int defaultColor = android.graphics.Color.parseColor("#121212");
+                            int darkVibrant = palette.getDarkVibrantColor(defaultColor);
+                            int dominant = palette.getDominantColor(defaultColor);
+                            int muted = palette.getMutedColor(defaultColor);
+
+                            int[] gradientColors = {dominant,darkVibrant, muted};
+
+                            android.graphics.drawable.GradientDrawable gradientDrawable = new android.graphics.drawable.GradientDrawable(
+                                    android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                                    gradientColors
+                            );
+
+                            findViewById(R.id.main).setBackground(gradientDrawable);
+                        }
+                    });
+                }
+
+                @Override
+                public void onLoadCleared(@androidx.annotation.Nullable android.graphics.drawable.Drawable placeholder) {
+                }
+
+            });
+        } else {
+            // it not work due to not null string as albumartstring is always not null
+            albumArt.setImageResource(R.drawable.albumart);
+        }
+
+    }
+
+
     private void playMusic(Uri songUri){
         if (mediaPlayer!=null){
             mediaPlayer.stop();
@@ -120,12 +245,14 @@ public class PlayerActivity extends AppCompatActivity {
         mediaPlayer=MediaPlayer.create(this,songUri);
         if (mediaPlayer!=null){
             mediaPlayer.start();
-            playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
+//            playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
+            playPauseBtn.setImageResource(R.drawable.pausebtn);
             songProgress.setMax(mediaPlayer.getDuration());
             updateSeekBar();
 
             mediaPlayer.setOnCompletionListener(m->{
-                playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
+//                playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
+                playPauseBtn.setImageResource(R.drawable.playbtn);
                 songProgress.setProgress(0);
             });
         } else{

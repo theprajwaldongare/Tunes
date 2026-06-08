@@ -30,6 +30,8 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 //        holder.albumArtImage.setImageURI(currentSong.getAlbumArtUri());
         Glide.with(holder.itemView.getContext())
                 .load(currentSong.getAlbumArtUri())
+                .centerCrop()
+                .transform(new com.bumptech.glide.load.resource.bitmap.RoundedCorners(20))
                 .placeholder(R.drawable.music)
                 .error(R.drawable.music)
                 .into(holder.albumArtImage);
@@ -38,13 +40,14 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             @Override
             public void onClick(View v){
                 Intent intent = new Intent(v.getContext(),PlayerActivity.class);
-                intent.putExtra("SONG_TITLE",currentSong.getTitle());
-                intent.putExtra("SONG_ARTIST",currentSong.getArtist());
-                intent.putExtra("SONG_URI",currentSong.getSongUri().toString());
-
-                if (currentSong.getAlbumArtUri()!=null){
-                    intent.putExtra("ALBUM_ART_URI",currentSong.getAlbumArtUri().toString());
-                }
+//                intent.putExtra("SONG_TITLE",currentSong.getTitle());
+//                intent.putExtra("SONG_ARTIST",currentSong.getArtist());
+//                intent.putExtra("SONG_URI",currentSong.getSongUri().toString());
+//
+//                if (currentSong.getAlbumArtUri()!=null){
+//                    intent.putExtra("ALBUM_ART_URI",currentSong.getAlbumArtUri().toString());
+//                }
+                intent.putExtra("SONG_POSITION", position);
 
                 v.getContext().startActivity(intent);
             }
