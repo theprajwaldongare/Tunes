@@ -60,5 +60,97 @@
         android:paddingBottom="80dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/logo"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toTopOf="@id/playBar"/>
+<!--    app:layout_constraintBottom_toBottomOf="parent"-->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/playBar"
+        android:background="#1E1E1E"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/barAlbum"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/round_album"
+            android:scaleType="centerCrop"
+            app:srcCompat="@drawable/albumart"
+            android:contentDescription="Album Image in play bar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </ImageView>
+
+        <TextView
+            android:id="@+id/songNameBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Song of this world"
+            android:layout_marginStart="12dp"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintBottom_toTopOf="@id/artistNameBar"
+            app:layout_constraintEnd_toStartOf="@id/prevBtnBar"
+            app:layout_constraintStart_toEndOf="@id/barAlbum"
+            app:layout_constraintTop_toTopOf="@id/barAlbum" />
+
+        <TextView
+            android:id="@+id/artistNameBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Unknow Person"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="4dp"
+            app:layout_constraintBottom_toBottomOf="@id/barAlbum"
+            app:layout_constraintEnd_toEndOf="@id/songNameBar"
+            app:layout_constraintStart_toStartOf="@id/songNameBar"
+            app:layout_constraintTop_toBottomOf="@id/songNameBar"/>
+
+        <ImageButton
+            android:id="@+id/prevBtnBar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_media_previous"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/playPauseBtnBar"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/playPauseBtnBar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/pausetransparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/nextBtnBar"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <ImageButton
+            android:id="@+id/nextBtnBar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/nexttransparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

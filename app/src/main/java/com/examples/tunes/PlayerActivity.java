@@ -1,6 +1,7 @@
 package com.examples.tunes;
 
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.content.Intent;
 import android.net.Uri;
@@ -27,17 +28,17 @@ public class PlayerActivity extends AppCompatActivity {
     private SeekBar songProgress;
     private TextView songName, artistName;
     private ImageView albumArt;
-    private MediaPlayer mediaPlayer;
+//    private MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
     private ImageButton playPauseBtn,nextBtn,prevBtn;
     private int currentPosition = 0;
+//    public static int currentPosition = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_player);
 
-        Intent incomeIntent = getIntent();
 //        songPlay = findViewById(R.id.songPlay);
         albumArt=findViewById(R.id.albumArt);
         songName = findViewById(R.id.songName);
@@ -48,12 +49,25 @@ public class PlayerActivity extends AppCompatActivity {
         nextBtn = findViewById(R.id.nextBtn);
         prevBtn = findViewById(R.id.prevBtn);
 
+        Intent incomeIntent = getIntent();
+        currentPosition = incomeIntent.getIntExtra("SONG_POSITION",0);
+        boolean fromNotification = incomeIntent.getBooleanExtra("FROM_NOTIFICATION",false);
+        if (savedInstanceState != null && MusicService.mediaPlayer != null) {
+            currentPosition = MusicService.currentIndex;
+            fromNotification = true;
+        }
+        if (fromNotification){
+            loadSong(currentPosition,false);
+        } else{
+            loadSong(currentPosition,true);
+        }
+
 
 
 
         if (incomeIntent!=null){
             currentPosition = getIntent().getIntExtra("SONG_POSITION", 0);
-            loadSong(currentPosition);
+            loadSong(currentPosition,true);
 
 //            String title = incomeIntent.getStringExtra("SONG_TITLE");
 //            String artist = incomeIntent.getStringExtra("SONG_ARTIST");
@@ -120,32 +134,34 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         playPauseBtn.setOnClickListener(v->{
-            if (mediaPlayer!=null){
-                if (mediaPlayer.isPlaying()){
-                    mediaPlayer.pause();
-                    playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
+            if (MusicService.mediaPlayer!=null){
+                if (MusicService.mediaPlayer.isPlaying()){
+                    MusicService.mediaPlayer.pause();
+                    playPauseBtn.setImageResource(R.drawable.playbtn);
                 } else{
-                    mediaPlayer.start();
-                    playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
+                    MusicService.mediaPlayer.start();
+                    playPauseBtn.setImageResource(R.drawable.pausebtn);
                 }
             }
         });
 
         nextBtn.setOnClickListener(v -> {
             currentPosition = (currentPosition + 1) % MainActivity.allSongs.size();
-            loadSong(currentPosition);
+            getIntent().putExtra("SONG_POSITION", currentPosition);
+            loadSong(currentPosition,true);
         });
 
         prevBtn.setOnClickListener(v -> {
             currentPosition = (currentPosition - 1 < 0) ? (MainActivity.allSongs.size() - 1) : (currentPosition - 1);
-            loadSong(currentPosition);
+            getIntent().putExtra("SONG_POSITION", currentPosition);
+            loadSong(currentPosition,true);
         });
 
         songProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean byUser) {
-                if (mediaPlayer!=null && byUser){
-                    mediaPlayer.seekTo(progress);
+                if (MusicService.mediaPlayer!=null && byUser){
+                    MusicService.mediaPlayer.seekTo(progress);
                 }
             }
 
@@ -163,12 +179,13 @@ public class PlayerActivity extends AppCompatActivity {
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
             return insets;
         });
     }
 
-    private void loadSong(int index){
+    private void loadSong(int index, boolean startMusic){
+
 
         Song currentSong = MainActivity.allSongs.get(index);
         String title = currentSong.getTitle();
@@ -183,15 +200,31 @@ public class PlayerActivity extends AppCompatActivity {
             artistName.setText(artist);
         }
 
-        if (uriString!=null){
+        if (startMusic){
+            playMusic(currentSong.getSongUri(),index);
+        } else{
+            if (MusicService.mediaPlayer!=null){
+                songProgress.setMax(MusicService.mediaPlayer.getDuration());
+                updateSeekBar();
 
-            Uri playUri = Uri.parse(uriString);
-            playMusic(playUri);
+                if (MusicService.mediaPlayer.isPlaying()){
+                    playPauseBtn.setImageResource(R.drawable.pausebtn);
+                } else {
+                    playPauseBtn.setImageResource(R.drawable.playbtn);
 
-
-            Log.d("TunesApp", "Playing: " + title + " from URI: " + playUri.toString());
-//                songPlay.setText("Playing: " + title + "URI: " + playUri.toString());
+                }
+            }
         }
+
+//        if (uriString!=null){
+//
+//            Uri playUri = Uri.parse(uriString);
+//            playMusic(playUri,index);
+//
+//
+//            Log.d("TunesApp", "Playing: " + title + " from URI: " + playUri.toString());
+////                songPlay.setText("Playing: " + title + "URI: " + playUri.toString());
+//        }
 
 
         if (albumArtString!=null){
@@ -237,33 +270,49 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
 
-    private void playMusic(Uri songUri){
-        if (mediaPlayer!=null){
-            mediaPlayer.stop();
-            mediaPlayer.release();
-        }
-        mediaPlayer=MediaPlayer.create(this,songUri);
-        if (mediaPlayer!=null){
-            mediaPlayer.start();
-//            playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
-            playPauseBtn.setImageResource(R.drawable.pausebtn);
-            songProgress.setMax(mediaPlayer.getDuration());
-            updateSeekBar();
+    private void playMusic(Uri songUri,int index){
+//        if (mediaPlayer!=null){
+//            mediaPlayer.stop();
+//            mediaPlayer.release();
+//        }
+//        mediaPlayer=MediaPlayer.create(this,songUri);
+//        if (mediaPlayer!=null){
+//            mediaPlayer.start();
+////            playPauseBtn.setImageResource(android.R.drawable.ic_media_pause);
+//            playPauseBtn.setImageResource(R.drawable.pausebtn);
+//            songProgress.setMax(mediaPlayer.getDuration());
+//            updateSeekBar();
+//
+//            mediaPlayer.setOnCompletionListener(m->{
+////                playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
+//                playPauseBtn.setImageResource(R.drawable.playbtn);
+//                songProgress.setProgress(0);
+//            });
+//        } else{
+//            Log.d("TunesApp", "Error in Audio");
+//        }
+        Intent serviceIntent = new Intent(this,MusicService.class);
+        serviceIntent.setAction("PLAY_NEW_SONG");
+        serviceIntent.putExtra("SONG_INDEX",index);
 
-            mediaPlayer.setOnCompletionListener(m->{
-//                playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
-                playPauseBtn.setImageResource(R.drawable.playbtn);
-                songProgress.setProgress(0);
-            });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            startForegroundService(serviceIntent);
         } else{
-            Log.d("TunesApp", "Error in Audio");
+            startService(serviceIntent);
         }
 
+        playPauseBtn.setImageResource(R.drawable.pausebtn);
+        handler.postDelayed(()-> {
+            if (MusicService.mediaPlayer != null){
+                songProgress.setMax(MusicService.mediaPlayer.getDuration());
+                updateSeekBar();
+            }
+        },500);
     }
 
     private void updateSeekBar(){
-        if (mediaPlayer!=null){
-            songProgress.setProgress(mediaPlayer.getCurrentPosition());
+        if (MusicService.mediaPlayer!=null){
+            songProgress.setProgress(MusicService.mediaPlayer.getCurrentPosition());
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -276,10 +325,11 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        if (mediaPlayer!=null){
-            mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer=null;
-        }
+//        if (mediaPlayer!=null){
+//            mediaPlayer.stop();
+//            mediaPlayer.release();
+//            mediaPlayer=null;
+//        }
+        handler.removeCallbacksAndMessages(null);
     }
 }

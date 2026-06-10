@@ -42,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
 //        songDsp = findViewById(R.id.songdsp);
         checkPermAndLoad();
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+
             return insets;
         });
     }
@@ -107,4 +108,10 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
     }
+
+//    public void setMusicBar(){
+//        if (PlayerActivity.currentPosition!=0){
+//
+//        }
+//    }
 }
